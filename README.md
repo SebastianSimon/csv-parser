@@ -30,7 +30,7 @@ import CSV from "/path/to/CSV.mjs";
 
 <!-- -->
 
-> Read about the API in the next section.
+> Read about the API in the [next section](#api).
 
 The functionality scope of this parser is:
 
@@ -306,7 +306,7 @@ The array of arrays representing all other rows (arrays of values, e.g. strings)
 
 ##### `mappedRows`: Array
 
-An array of objects like in the parser output.
+An array of objects [like in the parser output](#mappedrows-array).
 
 #### `quote`: string; default: `"\""`
 
