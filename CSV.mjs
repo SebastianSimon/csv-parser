@@ -316,7 +316,7 @@ export default (() => {
         };
     
     return {
-      parse(csv, {quote = "\"", separators = [ "," ], ignoreSpacesAfterQuotedString = true, forceLineFeedAfterCarriageReturn = true, linefeedBeforeEOF = false, taintQuoteSeparatorLines = false} = {}){
+      parse(csv, {quote = "\"", separators = [ "," ], forceLineFeedAfterCarriageReturn = true, linefeedBeforeEOF = false, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
         quote = toCharArray(quote)[0] || "";
         separators = toCharArray(separators).filter(validSeparators);
         
@@ -368,8 +368,8 @@ export default (() => {
         
         quote = toCharArray(quote)[0] || "\"";
         separator = toCharArray(separator)[0] || ",";
-        lineEnd = (lineEnd === "\r\n"
-          ? "\r\n"
+        lineEnd = (lineEnd === "\r\n" || lineEnd === "\r"
+          ? lineEnd
           : "\n");
         
         if(Array.isArray(object)){
