@@ -360,8 +360,8 @@ export default (() => {
           rows = [],
           mappedRows = [];
         
-        quote = toCharArray(quote)[0] || "\"";
-        separator = toCharArray(separator)[0] || ",";
+        quote = toCharArray(quote).filter(validQuotesAndSeparators)[0] || "\"";
+        separator = toCharArray(separator).filter(validQuotesAndSeparators)[0] || ",";
         lineEnd = (lineEnd === "\r\n" || lineEnd === "\r"
           ? lineEnd
           : "\n");
