@@ -17,7 +17,7 @@ export default (() => {
           return [];
         };
       })(),
-      validSeparators = (character) => character !== "" && character !== "\n" && character !== "\r",
+      validQuotesAndSeparators = (character) => character !== "" && character !== "\n" && character !== "\r",
       space = " ",
       strictLinebreakGroups = /\r\n|\r/g,
       looseLinebreakGroups = /\r\n|\n\r|\r/g,
@@ -317,21 +317,15 @@ export default (() => {
     
     return {
       parse(csv, {quote = "\"", separators = [ "," ], forceLineFeedAfterCarriageReturn = true, linefeedBeforeEOF = false, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
-        quote = toCharArray(quote)[0] || "";
-        separators = toCharArray(separators).filter(validSeparators);
-        
-        if(quote === "\n" || quote === "\r"){
-          quote = "";
-        }
-        
-        csv = csv
-          .replace((forceLineFeedAfterCarriageReturn
-            ? strictLinebreakGroups
-            : looseLinebreakGroups), "\n");
+        csv = csv.replace((forceLineFeedAfterCarriageReturn
+          ? strictLinebreakGroups
+          : looseLinebreakGroups), "\n");
         csv += (linefeedBeforeEOF && csv.endsWith("\n")
           ? ""
           : "\n");
         csv = csv.replaceAll("\0", "");
+        quote = toCharArray(quote).filter(validQuotesAndSeparators)[0] || "";
+        separators = toCharArray(separators).filter(validQuotesAndSeparators);
         
         const [
           header,
