@@ -99,7 +99,7 @@ export default (() => {
       {
         parseSubArrays
       } = (() => {
-        if(!RegExp.hasOwnProperty("escape")){
+        if(!RegExp.hasOwnProperty("escape")){ // From https://github.com/benjamingr/RegExp.escape/blob/master/polyfill.js
           const replacedChars = /[\\^$*+?.()|[\]{}]/g;
           
           Object.defineProperty(RegExp, "escape", {
@@ -309,14 +309,14 @@ export default (() => {
               maxCellCount
             } = this;
             
-            return Array.from(maxCellCount, (_, index) => line[index] || "")
+            return Array.from(maxCellCount, (_, index) => line[index] ?? "")
               .map(quoteString, this)
               .join(separator);
           }
         };
     
     return {
-      parse(csv, {quote = "\"", separators = [ "," ], forceLineFeedAfterCarriageReturn = true, linefeedBeforeEOF = false, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
+      parse(csv, {quote = "\"", separators = [","], forceLineFeedAfterCarriageReturn = true, linefeedBeforeEOF = false, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
         csv = csv.replace((forceLineFeedAfterCarriageReturn
           ? strictLinebreakGroups
           : looseLinebreakGroups), "\n");
@@ -324,12 +324,12 @@ export default (() => {
           ? ""
           : "\n");
         csv = csv.replaceAll("\0", "");
-        quote = toCharArray(quote).filter(validQuotesAndSeparators)[0] || "";
+        quote = toCharArray(quote).filter(validQuotesAndSeparators)[0] ?? "";
         separators = toCharArray(separators).filter(validQuotesAndSeparators);
         
         const [
           header,
-          ...tokenizedRows
+          ...rows
         ] = Array.from(csv)
           .reduce(tokenizeCells, {
             array: [
@@ -351,8 +351,8 @@ export default (() => {
         
         return {
           header,
-          rows: tokenizedRows,
-          mappedRows: tokenizedRows.map(toHashMap, header)
+          rows,
+          mappedRows: rows.map(toHashMap, header)
         };
       },
       stringify(object, {quote = "\"", separator = ",", lineEnd = "\n", trimEmpty = true, lineEndBeforeEOF = false} = {}){
@@ -360,8 +360,8 @@ export default (() => {
           rows = [],
           mappedRows = [];
         
-        quote = toCharArray(quote).filter(validQuotesAndSeparators)[0] || "\"";
-        separator = toCharArray(separator).filter(validQuotesAndSeparators)[0] || ",";
+        quote = toCharArray(quote).filter(validQuotesAndSeparators)[0] ?? "\"";
+        separator = toCharArray(separator).filter(validQuotesAndSeparators)[0] ?? ",";
         lineEnd = (lineEnd === "\r\n" || lineEnd === "\r"
           ? lineEnd
           : "\n");
