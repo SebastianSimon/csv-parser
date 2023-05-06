@@ -26,7 +26,7 @@ import CSV from "/path/to/CSV.mjs";
 
 ## Feature overview
 
-> Read how the parser works in detail in [DETAILS.md][details].
+> Read how the parser works in detail in [Details.md][details].
 
 <!-- -->
 
@@ -390,4 +390,4 @@ Value 1b,` // Note that the padded commas are gone, except where the columns are
 
 
   [rfc]: https://tools.ietf.org/html/rfc4180
-  [details]: DETAILS.md
+  [details]: Details.md
