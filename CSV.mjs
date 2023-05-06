@@ -19,8 +19,8 @@ export default (() => {
       })(),
       validQuotesAndSeparators = (character) => character !== "" && character !== "\n" && character !== "\r",
       space = " ",
-      strictLinebreakGroups = /\r\n|\r/g,
-      looseLinebreakGroups = /\r\n|\n\r|\r/g,
+      strictLinebreakGroups = /\r\n|\r/gu,
+      looseLinebreakGroups = /\r\n|\n\r|\r/gu,
       reduceClass = (characterClasses) => {
         if(characterClasses.length === 1){
           return characterClasses[0];
@@ -39,6 +39,8 @@ export default (() => {
         if(characterClasses.includes("quote") && characterClasses.includes("separator")){
           return "quoteSeparator";
         }
+        
+        return "other";
       },
       transition = (() => {
         const states = {
@@ -99,8 +101,9 @@ export default (() => {
       {
         parseSubArrays
       } = (() => {
-        if(!RegExp.hasOwnProperty("escape")){ // From https://github.com/benjamingr/RegExp.escape/blob/master/polyfill.js
-          const replacedChars = /[\\^$*+?.()|[\]{}]/g;
+        // From <https://github.com/benjamingr/RegExp.escape/blob/master/polyfill.js>.
+        if(!Object.hasOwn(RegExp, "escape")){
+          const replacedChars = /[\\^$*+?.()|[\]{}]/gu;
           
           Object.defineProperty(RegExp, "escape", {
             configurable: true,
@@ -122,15 +125,17 @@ export default (() => {
                 quote,
                 ignoreSpacesAfterQuotedString
               } = this,
-                surroundedQuotes = new RegExp(`^ *${RegExp.escape(quote)}([\\s\\S]*)${RegExp.escape(quote)}( *)$`),
-                spaceQuotes = /^ ([\s\S]*) $/,
-                escapedQuotes = new RegExp(`(${RegExp.escape(quote)})\\1`, "g");
+                surroundedQuotes = new RegExp(`^ *${RegExp.escape(quote)}([\\s\\S]*)${RegExp.escape(quote)}( *)$`, "u"),
+                spaceQuotes = /^ ([\s\S]*) $/u,
+                escapedQuotes = new RegExp(`(${RegExp.escape(quote)})\\1`, "gu");
               
               if(quote !== space && surroundedQuotes.test(string)){
-                return string
-                  .replace(surroundedQuotes, "$1" + (ignoreSpacesAfterQuotedString
+                const spacesAfterQuotedString = ignoreSpacesAfterQuotedString
                     ? ""
-                    : "$2"))
+                    : "$2";
+                
+                return string
+                  .replace(surroundedQuotes, `$1${spacesAfterQuotedString}`)
                   .replace(escapedQuotes, "$1");
               }
               
@@ -177,13 +182,13 @@ export default (() => {
         return characterClasses;
       },
       consume = (aggregator, character) => {
-        const lastLine = aggregator.array[aggregator.array.length - 1];
+        const lastLine = aggregator.array.at(-1);
         
         lastLine[lastLine.length - 1] += character;
       },
       discardCell = (aggregator) => {
-        if(aggregator.array[aggregator.array.length - 1].length > 1){
-          aggregator.array[aggregator.array.length - 1].pop();
+        if(aggregator.array.at(-1).length > 1){
+          aggregator.array.at(-1).pop();
         }
         
         aggregator.parserState = "finished";
@@ -191,7 +196,7 @@ export default (() => {
       },
       endCell = (aggregator, characterClasses) => {
         if(characterClasses.includes("separator")){
-          aggregator.array[aggregator.array.length - 1].push("");
+          aggregator.array.at(-1).push("");
         }
         else if(characterClasses.includes("linefeed")){
           aggregator.array.push([
@@ -259,7 +264,7 @@ export default (() => {
         
         return aggregator;
       },
-      getLength = ({length}) => length,
+      getLength = ({ length }) => length,
       {
         toHashMap,
         mapHeaderKeys,
@@ -275,7 +280,7 @@ export default (() => {
             }, {});
           },
           mapHeaderKeys(key){
-            return (this.hasOwnProperty(key)
+            return (Object.hasOwn(this, key)
               ? this[key]
               : "");
           },
@@ -303,14 +308,14 @@ export default (() => {
               maxCellCount
             } = this;
             
-            return Array.from(maxCellCount, (_, index) => line[index] ?? "")
+            return Array.from(maxCellCount, (_value, index) => line[index] ?? "")
               .map(quoteString, this)
               .join(separator);
           }
         };
     
     return {
-      parse(csv, {quote = "\"", separators = [","], forceLineFeedAfterCarriageReturn = true, ignoreLinefeedBeforeEOF = true, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
+      parse(csv, { quote = "\"", separators = [ "," ], forceLineFeedAfterCarriageReturn = true, ignoreLinefeedBeforeEOF = true, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false } = {}){
         csv = csv.replace((forceLineFeedAfterCarriageReturn
           ? strictLinebreakGroups
           : looseLinebreakGroups), "\n");
@@ -349,7 +354,7 @@ export default (() => {
           mappedRows: rows.map(toHashMap, header)
         };
       },
-      stringify(object, {quote = "\"", separator = ",", lineEnd = "\n", trimEmpty = true, lineEndBeforeEOF = false} = {}){
+      stringify(object, { quote = "\"", separator = ",", lineEnd = "\n", trimEmpty = true, lineEndBeforeEOF = false } = {}){
         let header = [],
           rows = [],
           mappedRows = [];
@@ -393,7 +398,7 @@ export default (() => {
           };
         
         if(trimEmpty){
-          while(allRows.length > 0 && allRows[allRows.length - 1].every((string) => string.length === 0)){
+          while(allRows.length > 0 && allRows.at(-1).every((string) => string.length === 0)){
             allRows.pop();
           }
           
