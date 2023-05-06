@@ -111,9 +111,9 @@ As an Array, each single-character element is a separator; as a string, each cha
 If `true`, line ends can only be `\n` or `\r\n`; a stray `\r` is interpreted as a separate line break.
 If `false`, `\n\r` will also be an acceptable line break (LibreOffice Calc does this).
 
-#### `linefeedBeforeEOF`: boolean; default: `false`
+#### `ignoreLinefeedBeforeEOF`: boolean; default: `true`
 
-If `true`, the `csvString` is parsed as a text file and is expected to have a line break before EOF; if it doesn’t, a line break will be appended.
+If `true`, the `csvString` can be parsed as a text file, which is expected to have a line break before EOF; if `false`, a final line break will be treated as a new row.
 
 #### `ignoreSpacesAfterQuotedString`: boolean; default: `true`
 

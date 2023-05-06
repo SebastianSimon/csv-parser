@@ -250,7 +250,7 @@ export default (() => {
           }
         }
         else if(aggregator.parserState === "open"){
-          if(aggregator.linefeedBeforeEOF){
+          if(!aggregator.ignoreLinefeedBeforeEOF){
             consume(aggregator, character);
           }
           
@@ -310,11 +310,11 @@ export default (() => {
         };
     
     return {
-      parse(csv, {quote = "\"", separators = [","], forceLineFeedAfterCarriageReturn = true, linefeedBeforeEOF = false, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
+      parse(csv, {quote = "\"", separators = [","], forceLineFeedAfterCarriageReturn = true, ignoreLinefeedBeforeEOF = true, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false} = {}){
         csv = csv.replace((forceLineFeedAfterCarriageReturn
           ? strictLinebreakGroups
           : looseLinebreakGroups), "\n");
-        csv += (linefeedBeforeEOF && csv.endsWith("\n")
+        csv += (ignoreLinefeedBeforeEOF && csv.endsWith("\n")
           ? ""
           : "\n");
         csv = csv.replaceAll("\0", "");
@@ -334,7 +334,7 @@ export default (() => {
             parserState: "empty",
             quote,
             separators,
-            linefeedBeforeEOF,
+            ignoreLinefeedBeforeEOF,
             taintQuoteSeparatorLines: taintQuoteSeparatorLines && separators.includes(quote),
             lineTaint: "none"
           }).array
