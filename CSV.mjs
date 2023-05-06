@@ -228,16 +228,10 @@ export default (() => {
             }
           }
           
-          if(reducedClass === "linefeed" && aggregator.lineTaint === "active"){
-            if(nextState === "open"){
-              consume(aggregator, aggregator.quote);
-              nextState = "finished";
-              aggregator.lineTaint = "none";
-            }
-            else if(nextState === "waiting"){
-              nextState = "discarded";
-              aggregator.lineTaint = "none";
-            }
+          if(reducedClass === "linefeed" && nextState === "open" && aggregator.lineTaint === "active"){
+            consume(aggregator, aggregator.quote);
+            nextState = "finished";
+            aggregator.lineTaint = "none";
           }
         }
         
