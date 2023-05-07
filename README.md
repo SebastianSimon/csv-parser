@@ -19,18 +19,23 @@ In the end, this was just a programming challenge for me.
 The CSV parser is an ECMAScript 6 module, so it can be imported like this:
 
 ```js
-import CSV from "/path/to/CSV.mjs";
+import CSV from "/path/to/CSV.js";
+
+// Use CSV.parse and CSV.stringify here.
+```
+
+In Node.js, the default import might create a module object with a `default` property, so you might need to use this instead:
+
+```js
+const CSV = (await import("/path/to/CSV.js")).default;
 
 // Use CSV.parse and CSV.stringify here.
 ```
 
 ## Feature overview
 
-> Read how the parser works in detail in [Details.md][details].
-
-<!-- -->
-
-> Read about the API in the [next section](#api).
+Read how the parser works in detail in [Details.md][details].
+Read about the API in the [next section](#api).
 
 The functionality scope of this parser is:
 
@@ -57,7 +62,7 @@ In this case, the parser distinguishes between different rules to determine when
 
 When it’s done, it outputs an object with the header row (the first row) and all remaining rows as simple arrays as well as objects mapping each header to its corresponding cell value.
 
-A few parsing options exist to tell the parser how to treat the input string, how strict the RFC should be followed, and even whether the parser should exhibit specific bugs from other parsers.
+A few parsing options exist to tell the parser how to treat the input string, how strict the RFC should be followed, and even whether the parser should emulate specific bugs exhibited in other parsers.
 
 ### Stringification
 
@@ -86,10 +91,10 @@ const {
       quote,
       separators,
       forceLineFeedAfterCarriageReturn,
-      linefeedBeforeEOF,
+      ignoreLineFeedBeforeEOF,
       ignoreSpacesAfterQuotedString,
       taintQuoteSeparatorLines
-    } // defaults to {}
+    } // Defaults to `{}`.
   );
 ```
 
@@ -111,9 +116,10 @@ As an Array, each single-character element is a separator; as a string, each cha
 If `true`, line ends can only be `\n` or `\r\n`; a stray `\r` is interpreted as a separate line break.
 If `false`, `\n\r` will also be an acceptable line break (LibreOffice Calc does this).
 
-#### `ignoreLinefeedBeforeEOF`: boolean; default: `true`
+#### `ignoreLineFeedBeforeEOF`: boolean; default: `true`
 
-If `true`, the `csvString` can be parsed as a text file, which is expected to have a line break before EOF; if `false`, a final line break will be treated as a new row.
+If `true`, the `csvString` can be parsed as a text file, which is expected to have a line break before EOF.
+If `false`, a final line break will be treated as a new row.
 
 #### `ignoreSpacesAfterQuotedString`: boolean; default: `true`
 
@@ -176,7 +182,7 @@ An array representing the remaining rows as objects whose key–value pairs are 
 const csvString = `Country,Capital City
 Germany,Berlin
 Italy,Rome
-Russia,Moscow`;
+Ukraine,Kyiv`;
 
 const countries = CSV.parse(csvString);
 
@@ -186,7 +192,7 @@ const countries = CSV.parse(csvString);
   rows: [
     [ "Germany", "Berlin" ],
     [ "Italy", "Rome" ],
-    [ "Russia", "Moscow" ]
+    [ "Ukraine", "Kyiv" ]
   ],
   mappedRows: [
     {
@@ -198,8 +204,8 @@ const countries = CSV.parse(csvString);
       "Capital City": "Rome"
     },
     {
-      Country: "Russia",
-      "Capital City": "Moscow"
+      Country: "Ukraine",
+      "Capital City": "Kyiv"
     }
   ]
 }
@@ -216,7 +222,7 @@ const music = CSV.parse(csvString, {
   quote: "'",
   separators: ";",
   ignoreSpacesAfterQuotedString: true,
-  linefeedBeforeEOF: true
+  ignoreLineFeedBeforeEOF: true
 });
 
 // music:
@@ -226,7 +232,7 @@ const music = CSV.parse(csvString, {
     [ "Rock'n'Roll", "4145" ],
     [ "Drum'n'Bass", "513" ], // Note the quotes were incorrectly escaped in the input
     [ "Reggae", "372" ] // Note it’s not "Reggae⟨SP⟩"
-    // Note no fourth empty row is included, because a linefeed at the end of the string is expected
+    // Note no fourth empty row is included, because a line feed at the end of the string is expected
   ],
   mappedRows: [
     {
@@ -251,7 +257,7 @@ Value 1a,Value 2a
 Value 1b\tValue 2b`;
 
 const example = CSV.parse(csvString, {
-  separators: ",;\t" // or [ ",", ";", "\t" ]
+  separators: ",;\t" // Or `[ ",", ";", "\t" ]`.
 });
 
 // example:
@@ -285,7 +291,7 @@ const csvString = CSV.stringify(
       lineEnd,
       trimEmpty,
       lineEndBeforeEOF
-    } // defaults to {}
+    } // Defaults to `{}`.
   );
 ```
 
@@ -334,7 +340,7 @@ If `true`, the `lineEnd` is appended to the string so it can be used as a text f
 
 #### `csvString`: string
 
-This is the output of the stringifier: a valid CSV string given the inputs.
+This is the output of the stringifier: a valid CSV string, given the inputs.
 
 ---
 
@@ -353,7 +359,7 @@ const countriesCSV = CSV.stringify(countries, {
 `Country;Capital City
 Germany;Berlin
 Italy;Rome
-Russia;Moscow
+Ukraine;Kyiv
 `
 ```
 
