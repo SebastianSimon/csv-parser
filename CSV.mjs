@@ -19,8 +19,8 @@ export default (() => {
       })(),
       validQuotesAndSeparators = (character) => character !== "" && character !== "\n" && character !== "\r",
       space = " ",
-      strictLinebreakGroups = /\r\n|\r/gu,
-      looseLinebreakGroups = /\r\n|\n\r|\r/gu,
+      strictLineBreakGroups = /\r\n|\r/gu,
+      looseLineBreakGroups = /\r\n|\n\r|\r/gu,
       reduceClass = (characterClasses) => {
         if(characterClasses.length === 1){
           return characterClasses[0];
@@ -45,7 +45,7 @@ export default (() => {
       transition = (() => {
         const states = {
             closed: {
-              linefeed: "finished",
+              lineFeed: "finished",
               other: "open",
               quote: "closed",
               quoteSeparator: "finished",
@@ -53,7 +53,7 @@ export default (() => {
               space: "closed"
             },
             open: {
-              linefeed: "open",
+              lineFeed: "open",
               other: "open",
               quote: "waiting",
               quoteSeparator: "waiting",
@@ -61,7 +61,7 @@ export default (() => {
               space: "open"
             },
             unquoted: {
-              linefeed: "finished",
+              lineFeed: "finished",
               other: "unquoted",
               quote: "unquoted",
               quoteSeparator: "finished",
@@ -69,7 +69,7 @@ export default (() => {
               space: "unquoted"
             },
             unsettled: {
-              linefeed: "finished",
+              lineFeed: "finished",
               other: "unquoted",
               quote: "open",
               quoteSeparator: "open",
@@ -77,7 +77,7 @@ export default (() => {
               space: "unsettled"
             },
             waiting: {
-              linefeed: "finished",
+              lineFeed: "finished",
               other: "open",
               quote: "open",
               quoteSeparator: "open",
@@ -88,7 +88,7 @@ export default (() => {
         
         return (parserState, reducedClass) => {
           if(parserState === "empty"){
-            if(reducedClass === "linefeed"){
+            if(reducedClass === "lineFeed"){
               return "discarded";
             }
             
@@ -125,9 +125,9 @@ export default (() => {
                 quote,
                 ignoreSpacesAfterQuotedString
               } = this,
-                surroundedQuotes = new RegExp(`^ *${RegExp.escape(quote)}([\\s\\S]*)${RegExp.escape(quote)}( *)$`, "u"),
-                spaceQuotes = /^ ([\s\S]*) $/u,
-                escapedQuotes = new RegExp(`(${RegExp.escape(quote)})\\1`, "gu");
+                surroundedQuotes = new RegExp(`^ *${RegExp.escape(quote)}(.*)${RegExp.escape(quote)}( *)$`, "s"),
+                spaceQuotes = /^ (.*) $/su,
+                escapedQuotes = new RegExp(`(${RegExp.escape(quote)})\\1`, "g");
               
               if(quote !== space && surroundedQuotes.test(string)){
                 const spacesAfterQuotedString = ignoreSpacesAfterQuotedString
@@ -159,7 +159,7 @@ export default (() => {
         const characterClasses = [];
         
         if(character === "\n"){
-          characterClasses.push("linefeed");
+          characterClasses.push("lineFeed");
         }
         else{
           if(character === quote){
@@ -198,7 +198,7 @@ export default (() => {
         if(characterClasses.includes("separator")){
           aggregator.array.at(-1).push("");
         }
-        else if(characterClasses.includes("linefeed")){
+        else if(characterClasses.includes("lineFeed")){
           aggregator.array.push([
             ""
           ]);
@@ -221,11 +221,11 @@ export default (() => {
         let nextState = transition(aggregator.parserState, reducedClass);
         
         if(aggregator.taintQuoteSeparatorLines){
-          if(nextState === "finished" && reducedClass !== "linefeed" && (aggregator.parserState === "closed" || aggregator.parserState === "waiting")){
+          if(nextState === "finished" && reducedClass !== "lineFeed" && (aggregator.parserState === "closed" || aggregator.parserState === "waiting")){
             lineTaintActivation(aggregator, reducedClass);
           }
           else if(nextState === "finished" || nextState === "discarded"){
-            if(reducedClass === "linefeed"){
+            if(reducedClass === "lineFeed"){
               aggregator.lineTaint = "none";
             }
             else if(aggregator.lineTaint !== "none"){
@@ -233,7 +233,7 @@ export default (() => {
             }
           }
           
-          if(reducedClass === "linefeed" && nextState === "open" && aggregator.lineTaint === "active"){
+          if(reducedClass === "lineFeed" && nextState === "open" && aggregator.lineTaint === "active"){
             consume(aggregator, aggregator.quote);
             nextState = "finished";
             aggregator.lineTaint = "none";
@@ -255,7 +255,7 @@ export default (() => {
           }
         }
         else if(aggregator.parserState === "open"){
-          if(!aggregator.ignoreLinefeedBeforeEOF){
+          if(!aggregator.ignoreLineFeedBeforeEOF){
             consume(aggregator, character);
           }
           
@@ -294,7 +294,7 @@ export default (() => {
               quote,
               separator
             } = this,
-              quotedContent = cell.replaceAll(quote, `${quote}${quote}`);
+              quotedContent = cell.replaceAll(quote, quote.repeat(2));
             
             if(cell.includes("\n") || cell.includes(quote) || cell.includes(separator)){
               return `${quote}${quotedContent}${quote}`;
@@ -315,11 +315,11 @@ export default (() => {
         };
     
     return {
-      parse(csv, { quote = "\"", separators = [ "," ], forceLineFeedAfterCarriageReturn = true, ignoreLinefeedBeforeEOF = true, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false } = {}){
+      parse(csv, { quote = "\"", separators = [ "," ], forceLineFeedAfterCarriageReturn = true, ignoreLineFeedBeforeEOF = true, ignoreSpacesAfterQuotedString = true, taintQuoteSeparatorLines = false } = {}){
         csv = csv.replace((forceLineFeedAfterCarriageReturn
-          ? strictLinebreakGroups
-          : looseLinebreakGroups), "\n");
-        csv += (ignoreLinefeedBeforeEOF && csv.endsWith("\n")
+          ? strictLineBreakGroups
+          : looseLineBreakGroups), "\n");
+        csv += (ignoreLineFeedBeforeEOF && csv.endsWith("\n")
           ? ""
           : "\n");
         csv = csv.replaceAll("\0", "");
@@ -339,7 +339,7 @@ export default (() => {
             parserState: "empty",
             quote,
             separators,
-            ignoreLinefeedBeforeEOF,
+            ignoreLineFeedBeforeEOF,
             taintQuoteSeparatorLines: taintQuoteSeparatorLines && separators.includes(quote),
             lineTaint: "none"
           }).array
